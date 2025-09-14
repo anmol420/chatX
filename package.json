@@ -1,0 +1,17 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "description": "A Chat App",
+  "license": "ISC",
+  "author": "anmol420",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "npx tsc && node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24.4.0",
+    "typescript": "^5.9.2"
+  }
+}
