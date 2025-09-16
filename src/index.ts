@@ -1,3 +1,1 @@
-import { fun } from "./app";
-
-fun();
+import "./config/env.config";
