@@ -4,6 +4,8 @@ interface EnvConfig {
     PORT: number;
     JWT_SECRET: string;
     JWT_EXPIRY: ExpiryString | number;
+    MONGO_URI: string;
+    CORS_ORIGIN: string;
 }
 
 const getEnv = (key: string): string => {
@@ -34,4 +36,6 @@ export const env: EnvConfig = {
         if (!isNaN(value)) return value;
         throw new Error(`Invalid JWT_EXPIRY format`);
     })(),
+    MONGO_URI: getEnv("MONGO_URI"),
+    CORS_ORIGIN: getEnv("CORS_ORIGIN"),
 }
