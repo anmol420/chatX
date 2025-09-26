@@ -6,6 +6,7 @@ interface EnvConfig {
     JWT_EXPIRY: ExpiryString | number;
     MONGO_URI: string;
     CORS_ORIGIN: string;
+    DATABASE_URL: string;
 }
 
 const getEnv = (key: string): string => {
@@ -38,4 +39,5 @@ export const env: EnvConfig = {
     })(),
     MONGO_URI: getEnv("MONGO_URI"),
     CORS_ORIGIN: getEnv("CORS_ORIGIN"),
+    DATABASE_URL: getEnv("DATABASE_URL"),
 }
