@@ -4,7 +4,6 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 
 import app from "./app";
-import dbConnect from "./db/db";
 
 import { socketAuth } from "./middleware/auth.middleware";
 import { handleSocketConnection } from "./socket/socket";
@@ -27,14 +26,7 @@ io.on('connection', (socket) => {
     handleSocketConnection(io, socket);
 });
 
-dbConnect()
-    .then(() => {
-        server.listen(env.PORT, () => {
-            console.log(`Server running on port: ${env.PORT}`);
-            console.log(`Socket.io server ready!`);
-        });
-    })
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+server.listen(env.PORT, () => {
+    console.log(`Server running on port: ${env.PORT}`);
+    console.log(`Socket.io server ready!`);
+});
