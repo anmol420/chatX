@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { eq, or, sql } from "drizzle-orm";
 
 import { db, users } from "../db/index";
-import { generateToken } from "../helpers/jwt.helper";
+import { generateToken, setBlacklistToken } from "../helpers/jwt.helper";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { errorResponse, successResponse } from "../utils/response";
 import { comparePassword, hashPassword } from "../helpers/bcrypt.helper";
@@ -81,15 +81,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        if (req.user) {
+        if (req.user && req.token) {
+            await setBlacklistToken(req.token);
             await db.update(users)
                 .set({
                     isOnline: false,
                     lastSeen: sql`NOW()`,
                 })
                 .where(eq(users.id, req.user.id));
+            res.status(200).json(successResponse(200, 'Logout successful', {}));
+            return;
         }
-        res.status(200).json(successResponse(200, 'Logout successful', {}));
+        res.status(500).json(errorResponse(500, 'Unable to logout'));
     } catch (error) {
         res.status(500).json(errorResponse(500, 'Internal server error'));
     }
