@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/api/v1/health', (_, res) => {
     res.json({
         status: 'OK',
-        message: 'Chat server is running',
+        message: 'Server is running',
         timestamp: new Date().toISOString()
     });
 });
