@@ -8,6 +8,9 @@ interface EnvConfig {
     CORS_ORIGIN: string;
     DATABASE_URL: string;
     REDIS_URL: string;
+    SMTP_HOST: string;
+    SMTP_USER: string;
+    SMTP_PASSWORD: string;
 }
 
 const getEnv = (key: string): string => {
@@ -42,4 +45,7 @@ export const env: EnvConfig = {
     CORS_ORIGIN: getEnv("CORS_ORIGIN"),
     DATABASE_URL: getEnv("DATABASE_URL"),
     REDIS_URL: getEnv("REDIS_URL"),
+    SMTP_HOST: getEnv("SMTP_HOST"),
+    SMTP_USER: getEnv("SMTP_USER"),
+    SMTP_PASSWORD: getEnv("SMTP_PASSWORD"),
 }
