@@ -19,8 +19,20 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: chat_app_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
   db_data:
   redis_data:
+  rabbitmq_data:
+    driver: local

@@ -11,6 +11,8 @@ interface EnvConfig {
     SMTP_HOST: string;
     SMTP_USER: string;
     SMTP_PASSWORD: string;
+    RABBITMQ_USER: string;
+    RABBITMQ_PASSWORD: string;
 }
 
 const getEnv = (key: string): string => {
@@ -48,4 +50,6 @@ export const env: EnvConfig = {
     SMTP_HOST: getEnv("SMTP_HOST"),
     SMTP_USER: getEnv("SMTP_USER"),
     SMTP_PASSWORD: getEnv("SMTP_PASSWORD"),
+    RABBITMQ_USER: getEnv("RABBITMQ_USER"),
+    RABBITMQ_PASSWORD: getEnv("RABBITMQ_PASSWORD"),
 }
