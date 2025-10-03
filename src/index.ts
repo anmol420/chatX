@@ -9,6 +9,7 @@ import { socketAuth } from "./middleware/auth.middleware";
 import { handleSocketConnection } from "./socket/socket";
 import { env } from "./helpers/env.helper";
 import { redisConnect } from "./config/redis.config";
+import { startConsumers } from "./utils/mq/consumers";
 
 const server = createServer(app);
 
@@ -27,15 +28,22 @@ io.on('connection', (socket) => {
     handleSocketConnection(io, socket);
 });
 
-redisConnect.connect()
+startConsumers()
     .then(() => {
-        server.listen(env.PORT, () => {
-            console.log(`Server running on port: ${env.PORT}`);
-            console.log(`Socket.io server ready!`);
-        });
+        redisConnect.connect()
+            .then(() => {
+                server.listen(env.PORT, () => {
+                    console.log(`Server running on port: ${env.PORT}`);
+                    console.log(`Socket.io server ready!`);
+                });
+            })
+            .catch((e: any) => {
+                console.log(e.message);
+                process.exit(0);
+            });
     })
-    .catch((e: any) => {
-        console.log(e.message);
+    .catch(() => {
+        console.log('Error in connecting to RabbitMQ!');
         process.exit(0);
     });
 
