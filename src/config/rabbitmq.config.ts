@@ -1,4 +1,5 @@
 import { Channel, ChannelModel, connect } from "amqplib";
+
 import { env } from "../helpers/env.helper";
 
 export const connectRabbitMQ = async (): Promise<{ connection: ChannelModel; channel: Channel }> => {
