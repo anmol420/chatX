@@ -2,10 +2,12 @@ import { Request, Response } from "express";
 import { eq, or, sql } from "drizzle-orm";
 
 import { db, users } from "../db/index";
-import { generateToken, setBlacklistToken } from "../helpers/jwt.helper";
+import { setBlacklistToken } from "../helpers/jwt.helper";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { errorResponse, successResponse } from "../utils/response";
 import { comparePassword, hashPassword } from "../helpers/bcrypt.helper";
+import { generateOTP } from "../helpers/otp.helper";
+import { userProducer } from "../utils/mq/producers/user.producer";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     const { username, email, password } = req.body;
@@ -29,14 +31,19 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     try {
+        const genOTP = generateOTP();
         await db.insert(users).values({
             username: username.toLowerCase().trim(),
             email: email.toLowerCase().trim(),
             password: hash,
+            otp: genOTP,
         });
-        res.status(201).json(successResponse(201, 'User created', {}));
+        await userProducer<{ email: string, otp: string }>("user.register.registrationOTP", {
+            email: email.toLowerCase().trim(),
+            otp: genOTP
+        });
+        res.status(200).json(successResponse(200, 'OTP sent successfully', {}));
     } catch (error) {
-        console.log(error);
         res.status(500).json(errorResponse(500, 'Internal server error'));
     }
 };
@@ -60,20 +67,25 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     try {
+        const genOTP = generateOTP();
         await db.update(users)
             .set({
-                isOnline: true,
-                lastSeen: sql`NOW()`,
+                otp: genOTP,
             })
             .where(eq(users.id, user.id));
-        const token = generateToken(user.id as string);
-        res.status(200).json(successResponse(200, 'Login successful', {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            isOnline: true,
-            token: token,
-        }));
+        await userProducer<{ email: string, otp: string }>("user.login.loginOTP", {
+            email: email.toLowerCase().trim(),
+            otp: genOTP
+        });
+        res.status(200).json(successResponse(200, 'OTP sent successfully', {}));
+        // 
+        // res.status(200).json(successResponse(200, 'Login successful', {
+        //     id: user.id,
+        //     username: user.username,
+        //     email: user.email,
+        //     isOnline: true,
+        //     token: token,
+        // }));
     } catch (error) {
         res.status(500).json(errorResponse(500, 'Internal server error'));
     }

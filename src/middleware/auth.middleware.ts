@@ -34,6 +34,10 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
         res.status(401).json(errorResponse(401, 'Invalid token.'));
         return;
     }
+    if (!user[0].isVerified) {
+        res.status(401).json(errorResponse(401, 'User Not Verified.'));
+        return;
+    }
     try {
         req.token = token;
         req.user = user[0];
@@ -55,7 +59,10 @@ export const socketAuth = async (req: AuthSocket, next: Function) => {
     const decoded = verifyToken(token) as { userID: string };
     const user = await db.select().from(users).where(eq(users.id, decoded.userID));
     if (user.length === 0) {
-        return next(new Error('Authentication error: Invalid token'));
+        return next(new Error('Authentication error: Invalid token.'));
+    }
+    if (!user[0].isVerified) {
+        return next(new Error('User Not Verified.'));
     }
     await db.update(users)
         .set({
