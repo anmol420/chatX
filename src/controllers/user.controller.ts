@@ -8,6 +8,7 @@ import { errorResponse, successResponse } from "../utils/response";
 import { comparePassword, hashPassword } from "../helpers/bcrypt.helper";
 import { generateOTP } from "../helpers/otp.helper";
 import { userProducer } from "../utils/mq/producers/user.producer";
+import { getSearchByUsername, setSearchByUsername } from "../helpers/cache.helper";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     const { username, email, password } = req.body;
@@ -58,12 +59,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         where: eq(users.email, email.toLowerCase().trim())
     });
     if (!user) {
-        res.status(404).json(errorResponse(400, 'User not found'));
+        res.status(404).json(errorResponse(404, 'User not found'));
         return;
     }
     const isMatch = comparePassword(user.password, password);
     if (!isMatch) {
-        res.status(401).json(errorResponse(400, 'Invalid credentials'));
+        res.status(401).json(errorResponse(401, 'Invalid credentials'));
         return;
     }
     try {
@@ -78,14 +79,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             otp: genOTP
         });
         res.status(200).json(successResponse(200, 'OTP sent successfully', {}));
-        // 
-        // res.status(200).json(successResponse(200, 'Login successful', {
-        //     id: user.id,
-        //     username: user.username,
-        //     email: user.email,
-        //     isOnline: true,
-        //     token: token,
-        // }));
     } catch (error) {
         res.status(500).json(errorResponse(500, 'Internal server error'));
     }
@@ -105,6 +98,40 @@ export const logout = async (req: AuthRequest, res: Response): Promise<void> => 
             return;
         }
         res.status(500).json(errorResponse(500, 'Unable to logout'));
+    } catch (error) {
+        res.status(500).json(errorResponse(500, 'Internal server error'));
+    }
+};
+
+export const searchUser = async (req: AuthRequest, res: Response): Promise<void> => {
+    const { username } = req.params;
+    if (!username) {
+        res.status(400).json(errorResponse(400, 'Please provide a username'));
+        return;
+    }
+    if (username === req.user?.username) {
+        res.status(400).json(errorResponse(400, 'Don\'t search your username'));
+        return;
+    }
+    let data = await getSearchByUsername(username);
+    if (data) {
+        res.status(200).json(successResponse(200, 'Search data', data));
+        return;
+    }
+    const user = await db.query.users.findFirst({
+        where: eq(users.username, username.toLowerCase().trim()),
+    });
+    if (!user) {
+        res.status(404).json(errorResponse(404, 'User not found'));
+        return;
+    }
+    try {
+        data = {
+            username: user.username,
+            canSendFriendReq: !user.friendList.includes(username),
+        };
+        await setSearchByUsername(username, data);
+        res.status(200).json(successResponse(200, 'Search data', data));
     } catch (error) {
         res.status(500).json(errorResponse(500, 'Internal server error'));
     }
