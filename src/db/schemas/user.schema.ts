@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const users = pgTable('users', {
@@ -44,7 +44,10 @@ export const users = pgTable('users', {
     updatedAt: timestamp('updated_at', { withTimezone: true })
         .default(sql`NOW()`)
         .notNull(),
-});
+}, (table) => [
+    index('username_idx').on(table.username),
+    index('email_idx').on(table.email),
+]);
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
