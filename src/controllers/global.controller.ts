@@ -21,7 +21,7 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
                 const registerValue = await verifyRegisterOTP(email, otp);
                 switch (registerValue) {
                     case 404:
-                        res.status(404).json(errorResponse(400, 'User not found'));
+                        res.status(404).json(errorResponse(404, 'User not found'));
                         return;
                     case 400:
                         res.status(400).json(errorResponse(400, 'OTP mismatch'));
@@ -41,13 +41,13 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
                 const loginValue = await verifyLoginOTP(email, otp);
                 switch (loginValue) {
                     case 404:
-                        res.status(404).json(errorResponse(400, 'User not found'));
+                        res.status(404).json(errorResponse(404, 'User not found'));
                         return;
                     case 400:
                         res.status(400).json(errorResponse(400, 'OTP mismatch'));
                         return;
                     case 401:
-                        res.status(401).json(errorResponse(400, 'User not verified'));
+                        res.status(401).json(errorResponse(401, 'User not verified'));
                         return;
                     case 200:
                         const data = userData;
