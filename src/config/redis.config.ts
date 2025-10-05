@@ -43,6 +43,15 @@ class RedisConnect {
         const response = await client.get(`blacklist_${token}`);
         return response !== null;
     }
+    async setData(prefix: string, token: string, ttl: number, data: any): Promise<void> {
+        const client = this.getClient();
+        await client.setex(`${prefix}_${token}`, ttl, JSON.stringify(data));
+    }
+    async getData(prefix: string, token: string): Promise<string | null> {
+        const client = this.getClient();
+        const response = await client.get(`${prefix}_${token}`);
+        return response;
+    }
 }
 
 export const redisConnect = new RedisConnect();
