@@ -6,9 +6,8 @@ import { setBlacklistToken } from "../helpers/jwt.helper";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { errorResponse, successResponse } from "../utils/response";
 import { comparePassword, hashPassword } from "../helpers/bcrypt.helper";
-import { generateOTP } from "../helpers/otp.helper";
+import { checkCanSendFriendReq, generateOTP } from "../helpers/helpers";
 import { userProducer } from "../utils/mq/producers/user.producer";
-import { getSearchByUsername, setSearchByUsername } from "../helpers/cache.helper";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     const { username, email, password } = req.body;
@@ -113,24 +112,18 @@ export const searchUser = async (req: AuthRequest, res: Response): Promise<void>
         res.status(400).json(errorResponse(400, 'Don\'t search your username'));
         return;
     }
-    let data = await getSearchByUsername(username);
-    if (data) {
-        res.status(200).json(successResponse(200, 'Search data', data));
-        return;
-    }
     const user = await db.query.users.findFirst({
-        where: eq(users.username, username.toLowerCase().trim()),
+        where: eq(users.username, req.user?.username as string),
     });
     if (!user) {
         res.status(404).json(errorResponse(404, 'User not found'));
         return;
     }
     try {
-        data = {
-            username: user.username,
-            canSendFriendReq: !user.friendList.includes(username),
+        let data = {
+            username: username,
+            canSendFriendReq: checkCanSendFriendReq(user, username.toLowerCase().trim()),
         };
-        await setSearchByUsername(username, data);
         res.status(200).json(successResponse(200, 'Search data', data));
     } catch (error) {
         res.status(500).json(errorResponse(500, 'Internal server error'));
